@@ -1,5 +1,5 @@
 homepage: "https://addrevenue.io"
 documentation: "https://addrevenue.io/en/trackingCodeGTM"
 versions:
-  - sha: a671a8ca2b098b3ab2f5bc66d4b4f89a96ae30ca
+  - sha: f4c94b07450a5ba66f0653d67de88fb11cecf473
     changeNotes: Initial release.
