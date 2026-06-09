@@ -1,6 +1,10 @@
 homepage: "https://addrevenue.io"
 documentation: "https://addrevenue.io/en/trackingCodeGTM"
 versions:
+  - sha: 671b2b086613949dd4430a201a2e17e0e1ab68d2
+    changeNotes: |2
+      - Rebuilt template from ground up with more config options and better documentation.
+      - Updated script with v2 of Addrevenue's tracking code.
   - sha: 495a4d558819ddc474b57714a867527812e16352
     changeNotes: Merged both base and conversion tag templates into one
   - sha: f4c94b07450a5ba66f0653d67de88fb11cecf473
