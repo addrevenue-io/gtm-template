@@ -189,7 +189,7 @@ const copyFromWindow = require('copyFromWindow');
 const callInWindow = require('callInWindow');
 const encodeUriComponent = require('encodeUriComponent');
 
-const scriptUrl = 'https://dev-eevee.addrevenue.io/track.js';
+const scriptUrl = 'https://addrevenue.io/track.js';
 const tagType = data.tagType || 'base';
 
 let url = scriptUrl;
@@ -441,6 +441,6 @@ setup: ''
 
 ___NOTES___
 
-Created on 2026-06-09, 15:41:27
+Created on 2026-06-09, 15:44:08
 
 
