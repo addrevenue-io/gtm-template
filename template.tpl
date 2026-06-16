@@ -412,14 +412,6 @@ ___WEB_PERMISSIONS___
               {
                 "type": 1,
                 "string": "https://addrevenue.io/track.js*"
-              },
-              {
-                "type": 1,
-                "string": "https://dev-eevee.addrevenue.io/track.js"
-              },
-              {
-                "type": 1,
-                "string": "https://dev-eevee.addrevenue.io/track.js*"
               }
             ]
           }
