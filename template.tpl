@@ -211,7 +211,8 @@ if (data.cookiePeriod) {
 
 const buildPurchasePayload = () => {
   const payload = {
-    orderId: data.orderId
+    orderId: data.orderId,
+    source: "GTM Template v2.0"
   };
 
   if (data.value) {
