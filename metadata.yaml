@@ -1,6 +1,8 @@
 homepage: "https://addrevenue.io"
 documentation: "https://addrevenue.io/en/trackingCodeGTM"
 versions:
+  - sha: 7cee0acabb2949e05defb4d0c80c270a1ffb7f1e
+    changeNotes: Fixed "ADDREVENUE not defined" error by waiting for the tracking script to initialise before sending conversions.
   - sha: 2a9834e304268ce16e137728da9e7a85eca799d2
     changeNotes: Added "GTM Template v2.0 as source parameter".
   - sha: dfab5157cd9aa1502f8af84af8737e6e77c3804d
