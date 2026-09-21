@@ -199,6 +199,7 @@ const injectScript = require('injectScript');
 const copyFromWindow = require('copyFromWindow');
 const callInWindow = require('callInWindow');
 const encodeUriComponent = require('encodeUriComponent');
+const callLater = require('callLater');
 
 const scriptUrl = 'https://addrevenue.io/track.js';
 const tagType = data.tagType || 'base';
@@ -234,26 +235,44 @@ const buildPurchasePayload = () => {
   return payload;
 };
 
-const sendConversion = () => {
-  const addrevenue = copyFromWindow('ADDREVENUE');
+// callLater has no delay argument (it runs after the current code returns),
+// so the retry budget is a count of attempts rather than a time.
+const MAX_ATTEMPTS = 1000;
 
-  if (!addrevenue) {
-    data.gtmOnFailure();
-    return;
-  }
-  if (callInWindow(
+const sendConversion = () => {
+  const result = callInWindow(
     'ADDREVENUE_SENDEVENT',
     data.conversionEventId,
     buildPurchasePayload()
-  )) {
-    data.gtmOnSuccess();  
+  );
+
+  if (result === false) {
+    data.gtmOnFailure();
+    return;
   }
-  data.gtmOnFailure();
+
+  data.gtmOnSuccess();
+};
+
+// The script tag can finish loading before track.js has created the
+// ADDREVENUE object, so wait for it to exist before using it.
+const waitForAddrevenue = (attempt) => {
+  if (copyFromWindow('ADDREVENUE')) {
+    sendConversion();
+    return;
+  }
+
+  if (attempt >= MAX_ATTEMPTS) {
+    data.gtmOnFailure();
+    return;
+  }
+
+  callLater(() => waitForAddrevenue(attempt + 1));
 };
 
 const onScriptLoaded = () => {
   if (tagType === 'conversion') {
-    sendConversion();
+    waitForAddrevenue(0);
     return;
   }
 
@@ -429,6 +448,14 @@ ___WEB_PERMISSIONS___
               {
                 "type": 1,
                 "string": "https://addrevenue.io/track.js*"
+              },
+              {
+                "type": 1,
+                "string": "https://addrevenue.io/mastertag.js*"
+              },
+              {
+                "type": 1,
+                "string": "https://addrevenue.io/mastertag.js*"
               }
             ]
           }
