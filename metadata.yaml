@@ -1,6 +1,11 @@
 homepage: "https://addrevenue.io"
 documentation: "https://addrevenue.io/en/trackingCodeGTM"
 versions:
+  - sha: ca0c315b373c807a55da42d4e5b10d7e22d93b39
+    changeNotes: |2
+      - Added Consent Mode support: track.js now receives an explicit consent=granted|denied param instead of the tag being blocked by consent requirements.
+      - Fixed duplicated mastertag.js entry in the inject_script permission block.
+      - Bumped source parameter to "GTM Template v2.1".
   - sha: 7cee0acabb2949e05defb4d0c80c270a1ffb7f1e
     changeNotes: Fixed "ADDREVENUE not defined" error by waiting for the tracking script to initialise before sending conversions.
   - sha: 2a9834e304268ce16e137728da9e7a85eca799d2
