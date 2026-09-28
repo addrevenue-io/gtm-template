@@ -50,6 +50,33 @@ ___TEMPLATE_PARAMETERS___
     "help": "Choose \"Base Tag\" for all pages.\u003cbr\u003e\u003cbr\u003eChoose \"Conversion Tag\" for purchase confirmation pages or purchase events."
   },
   {
+    "type": "SELECT",
+    "name": "consentType",
+    "displayName": "Consent Type",
+    "macrosInSelect": false,
+    "selectItems": [
+      {
+        "value": "ad_storage",
+        "displayValue": "ad_storage"
+      },
+      {
+        "value": "analytics_storage",
+        "displayValue": "analytics_storage"
+      },
+      {
+        "value": "ad_user_data",
+        "displayValue": "ad_user_data"
+      },
+      {
+        "value": "ad_personalization",
+        "displayValue": "ad_personalization"
+      }
+    ],
+    "simpleValueType": true,
+    "defaultValue": "ad_storage",
+    "help": "track.js is always injected — it reads this consent state itself and degrades to cookieless, URL-param-only tracking when it is not granted, instead of tracking not running at all.<br><br>IMPORTANT: do not set \"Require additional consent for tag to fire\" in this tag's own Consent Settings. That blocks the tag — and therefore track.js's built-in cookieless fallback — from ever running pre-consent, which is worse than granting no consent at all.<br><br>This consent type reads as granted unless something has explicitly set it to denied as a default. If the container has no Consent Initialization tag (or it runs after this tag, or it only covers a different consent type than the one selected here), this will always read as granted — identical to a site with no consent setup at all. Confirm a Consent Initialization tag sets a default for this exact consent type before relying on this dropdown to gate tracking."
+  },
+  {
     "type": "GROUP",
     "name": "baseParameters",
     "displayName": "Parameters",
@@ -200,20 +227,39 @@ const copyFromWindow = require('copyFromWindow');
 const callInWindow = require('callInWindow');
 const encodeUriComponent = require('encodeUriComponent');
 const callLater = require('callLater');
+const isConsentGranted = require('isConsentGranted');
 
 const scriptUrl = 'https://addrevenue.io/track.js';
 const tagType = data.tagType || 'base';
 
-let url = scriptUrl;
+// track.js reads a "consent" query param on its own <script> tag to decide
+// whether to run in full-cookie mode ('granted') or fall back to cookieless
+// URL-param passthrough (anything else). We always inject the script and
+// always pass an explicit value here — this tag must not itself require
+// additional consent to fire, or track.js's cookieless fallback never runs
+// either and tracking is lost entirely pre-consent (see consentType help text).
+const consentType = data.consentType || 'ad_storage';
+const consentGranted = isConsentGranted(consentType);
 
+const queryParams = ['consent=' + encodeUriComponent(consentGranted ? 'granted' : 'denied')];
 if (data.cookiePeriod) {
-  url = scriptUrl + '?d=' + encodeUriComponent(data.cookiePeriod);
+  queryParams.push('d=' + encodeUriComponent(data.cookiePeriod));
 }
+
+const url = scriptUrl + '?' + queryParams.join('&');
+
+// injectScript dedupes by scriptId: a second call with the same id just
+// invokes the callback without re-adding/re-running the script. Suffixing
+// the id with the consent state means that if this tag fires again later
+// (e.g. via a "Consent Update" trigger) after consent flips from denied to
+// granted, track.js actually gets re-injected and re-reads the new value,
+// instead of silently staying stuck in cookieless mode.
+const scriptId = 'addrevenue-tracking-script-' + (consentGranted ? 'granted' : 'denied');
 
 const buildPurchasePayload = () => {
   const payload = {
     orderId: data.orderId,
-    source: "GTM Template v2.0"
+    source: "GTM Template v2.1"
   };
 
   if (data.value) {
@@ -283,7 +329,7 @@ injectScript(
   url,
   onScriptLoaded,
   data.gtmOnFailure,
-  'addrevenue-tracking-script'
+  scriptId
 );
 
 
@@ -432,6 +478,152 @@ ___WEB_PERMISSIONS___
   {
     "instance": {
       "key": {
+        "publicId": "access_consent",
+        "versionId": "1"
+      },
+      "param": [
+        {
+          "key": "consentTypes",
+          "value": {
+            "type": 2,
+            "listItem": [
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "consentType"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "ad_storage"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "consentType"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "analytics_storage"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "consentType"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "ad_user_data"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "consentType"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "ad_personalization"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "clientAnnotations": {
+      "isEditedByUser": true
+    },
+    "isRequired": true
+  },
+  {
+    "instance": {
+      "key": {
         "publicId": "inject_script",
         "versionId": "1"
       },
@@ -451,7 +643,7 @@ ___WEB_PERMISSIONS___
               },
               {
                 "type": 1,
-                "string": "https://addrevenue.io/mastertag.js*"
+                "string": "https://addrevenue.io/mastertag.js"
               },
               {
                 "type": 1,
