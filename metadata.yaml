@@ -1,5 +1,5 @@
 homepage: "https://addrevenue.io"
-documentation: "https://addrevenue.io/en/trackingCodeGTM"
+documentation: "https://addrevenue.io/en/trackingCodeGTMTemplate"
 versions:
   - sha: 3debe7da891db246b3bf1a33e19420d17d4f6f5c
     changeNotes: Shortened the "No consent mode" option label and help text.
