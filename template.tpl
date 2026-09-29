@@ -57,7 +57,7 @@ ___TEMPLATE_PARAMETERS___
     "selectItems": [
       {
         "value": "none",
-        "displayValue": "No consent management (this site does not use Consent Mode)"
+        "displayValue": "No consent mode"
       },
       {
         "value": "ad_storage",
@@ -78,22 +78,7 @@ ___TEMPLATE_PARAMETERS___
     ],
     "simpleValueType": true,
     "defaultValue": "none",
-    "help": "Select the Consent Mode consent type that should govern tracking on this site. Only select a type this container actually manages with Consent Mode (a Consent Initialization tag with a default, updated by your CMP) — otherwise select \"No consent management\".<br><br>Ignored when Consent Override (below) is set."
-  },
-  {
-    "type": "SELECT",
-    "name": "consentOverride",
-    "displayName": "Consent Override (Optional)",
-    "macrosInSelect": true,
-    "selectItems": [
-      {
-        "value": "",
-        "displayValue": "None — use Consent Type above"
-      }
-    ],
-    "simpleValueType": true,
-    "defaultValue": "",
-    "help": "Optional. If this site manages cookie consent without Google Consent Mode (e.g. a custom trigger or Data Layer variable), select a GTM variable here that resolves to your consent signal (true/false, or 'granted'/'denied'). When set, it is used instead of Consent Type above."
+    "help": "Select the Consent Mode consent type that should govern tracking on this site. Only select a type this container actually manages with Consent Mode (a Consent Initialization tag with a default, updated by your CMP) — otherwise select \"No consent mode\"."
   },
   {
     "type": "GROUP",
@@ -258,31 +243,10 @@ const tagType = data.tagType || 'base';
 // either and tracking is lost entirely pre-consent (see consentType help text).
 const consentType = data.consentType || 'none';
 
-// isConsentGranted() only sees Google Consent Mode state. Containers that
-// gate cookies purely through GTM triggers/variables (never calling
-// gtag('consent', ...)) leave that state untouched, which isConsentGranted()
-// reads as granted — see consentOverride help text. When a container is set
-// up that way, consentOverride lets them feed in their own signal instead.
-const normalizeConsentValue = (value) => {
-  if (value === true || value === 'true' || value === 'granted') return true;
-  if (value === false || value === 'false' || value === 'denied') return false;
-  return null;
-};
-
-const overriddenConsent = normalizeConsentValue(data.consentOverride);
-
-// null here means "no consent signal available" — consentType is 'none' and
-// no override was given. We deliberately do NOT default that to granted or
-// denied ourselves: sending no consent param at all is track.js's own
-// pre-existing "not set" default (unconditional cookies), so choosing "No
-// consent management" is an explicit, visible opt into that legacy
-// behavior rather than us silently picking it via a hidden default.
-let consentGranted = null;
-if (overriddenConsent !== null) {
-  consentGranted = overriddenConsent;
-} else if (consentType !== 'none') {
-  consentGranted = isConsentGranted(consentType);
-}
+// consentType 'none' means no consent signal applies; leave consentGranted
+// null so the consent param is omitted below rather than us guessing
+// granted or denied ourselves.
+const consentGranted = consentType !== 'none' ? isConsentGranted(consentType) : null;
 
 const queryParams = [];
 if (consentGranted !== null) {
