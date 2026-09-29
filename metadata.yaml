@@ -1,6 +1,8 @@
 homepage: "https://addrevenue.io"
 documentation: "https://addrevenue.io/en/trackingCodeGTM"
 versions:
+  - sha: 27de8f57d9edeeda6eb24cbba449e8d5a7149fdd
+    changeNotes: Bumped source parameter to "GTM Template v2.2".
   - sha: b686f90a89dd2eb71eb67a1d3180642d5e31db63
     changeNotes: |2
       - Added a Consent Override parameter for containers that manage cookie consent without Google Consent Mode.
