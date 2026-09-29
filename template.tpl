@@ -306,7 +306,7 @@ const scriptId = 'addrevenue-tracking-script-' +
 const buildPurchasePayload = () => {
   const payload = {
     orderId: data.orderId,
-    source: "GTM Template v2.1"
+    source: "GTM Template v2.2"
   };
 
   if (data.value) {
