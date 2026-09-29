@@ -56,6 +56,10 @@ ___TEMPLATE_PARAMETERS___
     "macrosInSelect": false,
     "selectItems": [
       {
+        "value": "none",
+        "displayValue": "No consent management (this site does not use Consent Mode)"
+      },
+      {
         "value": "ad_storage",
         "displayValue": "ad_storage"
       },
@@ -73,8 +77,23 @@ ___TEMPLATE_PARAMETERS___
       }
     ],
     "simpleValueType": true,
-    "defaultValue": "ad_storage",
-    "help": "track.js is always injected — it reads this consent state itself and degrades to cookieless, URL-param-only tracking when it is not granted, instead of tracking not running at all.<br><br>IMPORTANT: do not set \"Require additional consent for tag to fire\" in this tag's own Consent Settings. That blocks the tag — and therefore track.js's built-in cookieless fallback — from ever running pre-consent, which is worse than granting no consent at all.<br><br>This consent type reads as granted unless something has explicitly set it to denied as a default. If the container has no Consent Initialization tag (or it runs after this tag, or it only covers a different consent type than the one selected here), this will always read as granted — identical to a site with no consent setup at all. Confirm a Consent Initialization tag sets a default for this exact consent type before relying on this dropdown to gate tracking."
+    "defaultValue": "none",
+    "help": "Select the Consent Mode consent type that should govern tracking on this site. Only select a type this container actually manages with Consent Mode (a Consent Initialization tag with a default, updated by your CMP) — otherwise select \"No consent management\".<br><br>Ignored when Consent Override (below) is set."
+  },
+  {
+    "type": "SELECT",
+    "name": "consentOverride",
+    "displayName": "Consent Override (Optional)",
+    "macrosInSelect": true,
+    "selectItems": [
+      {
+        "value": "",
+        "displayValue": "None — use Consent Type above"
+      }
+    ],
+    "simpleValueType": true,
+    "defaultValue": "",
+    "help": "Optional. If this site manages cookie consent without Google Consent Mode (e.g. a custom trigger or Data Layer variable), select a GTM variable here that resolves to your consent signal (true/false, or 'granted'/'denied'). When set, it is used instead of Consent Type above."
   },
   {
     "type": "GROUP",
@@ -234,19 +253,46 @@ const tagType = data.tagType || 'base';
 
 // track.js reads a "consent" query param on its own <script> tag to decide
 // whether to run in full-cookie mode ('granted') or fall back to cookieless
-// URL-param passthrough (anything else). We always inject the script and
-// always pass an explicit value here — this tag must not itself require
+// URL-param passthrough (anything else). This tag must not itself require
 // additional consent to fire, or track.js's cookieless fallback never runs
 // either and tracking is lost entirely pre-consent (see consentType help text).
-const consentType = data.consentType || 'ad_storage';
-const consentGranted = isConsentGranted(consentType);
+const consentType = data.consentType || 'none';
 
-const queryParams = ['consent=' + encodeUriComponent(consentGranted ? 'granted' : 'denied')];
+// isConsentGranted() only sees Google Consent Mode state. Containers that
+// gate cookies purely through GTM triggers/variables (never calling
+// gtag('consent', ...)) leave that state untouched, which isConsentGranted()
+// reads as granted — see consentOverride help text. When a container is set
+// up that way, consentOverride lets them feed in their own signal instead.
+const normalizeConsentValue = (value) => {
+  if (value === true || value === 'true' || value === 'granted') return true;
+  if (value === false || value === 'false' || value === 'denied') return false;
+  return null;
+};
+
+const overriddenConsent = normalizeConsentValue(data.consentOverride);
+
+// null here means "no consent signal available" — consentType is 'none' and
+// no override was given. We deliberately do NOT default that to granted or
+// denied ourselves: sending no consent param at all is track.js's own
+// pre-existing "not set" default (unconditional cookies), so choosing "No
+// consent management" is an explicit, visible opt into that legacy
+// behavior rather than us silently picking it via a hidden default.
+let consentGranted = null;
+if (overriddenConsent !== null) {
+  consentGranted = overriddenConsent;
+} else if (consentType !== 'none') {
+  consentGranted = isConsentGranted(consentType);
+}
+
+const queryParams = [];
+if (consentGranted !== null) {
+  queryParams.push('consent=' + encodeUriComponent(consentGranted ? 'granted' : 'denied'));
+}
 if (data.cookiePeriod) {
   queryParams.push('d=' + encodeUriComponent(data.cookiePeriod));
 }
 
-const url = scriptUrl + '?' + queryParams.join('&');
+const url = queryParams.length ? scriptUrl + '?' + queryParams.join('&') : scriptUrl;
 
 // injectScript dedupes by scriptId: a second call with the same id just
 // invokes the callback without re-adding/re-running the script. Suffixing
@@ -254,7 +300,8 @@ const url = scriptUrl + '?' + queryParams.join('&');
 // (e.g. via a "Consent Update" trigger) after consent flips from denied to
 // granted, track.js actually gets re-injected and re-reads the new value,
 // instead of silently staying stuck in cookieless mode.
-const scriptId = 'addrevenue-tracking-script-' + (consentGranted ? 'granted' : 'denied');
+const scriptId = 'addrevenue-tracking-script-' +
+  (consentGranted === null ? 'unmanaged' : (consentGranted ? 'granted' : 'denied'));
 
 const buildPurchasePayload = () => {
   const payload = {
