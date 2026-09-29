@@ -1,6 +1,10 @@
 homepage: "https://addrevenue.io"
 documentation: "https://addrevenue.io/en/trackingCodeGTM"
 versions:
+  - sha: b686f90a89dd2eb71eb67a1d3180642d5e31db63
+    changeNotes: |2
+      - Added a Consent Override parameter for containers that manage cookie consent without Google Consent Mode.
+      - Consent Type now defaults to an explicit "No consent management" option instead of ad_storage.
   - sha: ca0c315b373c807a55da42d4e5b10d7e22d93b39
     changeNotes: |2
       - Added Consent Mode support: track.js now receives an explicit consent=granted|denied param instead of the tag being blocked by consent requirements.
