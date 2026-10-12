@@ -101,6 +101,14 @@ ___TEMPLATE_PARAMETERS___
         "valueUnit": "days",
         "canBeEmptyString": false,
         "valueHint": "Leave empty unless specified"
+      },
+      {
+        "type": "CHECKBOX",
+        "name": "noForms",
+        "checkboxText": "Don't add tracking parameters to checkout forms",
+        "simpleValueType": true,
+        "defaultValue": false,
+        "help": "When checked, the tracking script will not add tracking parameters to the checkout form. Do not enable unless specified by Addrevenue."
       }
     ],
     "enablingConditions": [
@@ -254,6 +262,9 @@ if (consentGranted !== null) {
 }
 if (data.cookiePeriod) {
   queryParams.push('d=' + encodeUriComponent(data.cookiePeriod));
+}
+if (data.noForms) {
+  queryParams.push('noForms=1');
 }
 
 const url = queryParams.length ? scriptUrl + '?' + queryParams.join('&') : scriptUrl;
