@@ -1,6 +1,8 @@
 homepage: "https://addrevenue.io"
 documentation: "https://addrevenue.io/en/trackingCodeGTMTemplate"
 versions:
+  - sha: 380bfd046df6c1071b00f4d1c56bf03d87b9e996
+    changeNotes: Added "noForms" option to the base tag to disable adding tracking parameters to checkout forms.
   - sha: 3debe7da891db246b3bf1a33e19420d17d4f6f5c
     changeNotes: Shortened the "No consent mode" option label and help text.
   - sha: 27de8f57d9edeeda6eb24cbba449e8d5a7149fdd
