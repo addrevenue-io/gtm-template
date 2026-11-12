@@ -219,6 +219,29 @@ ___TEMPLATE_PARAMETERS___
             "type": "NON_EMPTY"
           }
         ]
+      },
+      {
+        "type": "GROUP",
+        "name": "additionalParameters",
+        "displayName": "Additional parameters",
+        "groupStyle": "ZIPPY_CLOSED",
+        "subParams": [
+          {
+            "type": "SELECT",
+            "name": "departureDate",
+            "displayName": "Departure Date (Optional)",
+            "macrosInSelect": true,
+            "selectItems": [
+              {
+                "value": "",
+                "displayValue": "Empty"
+              }
+            ],
+            "simpleValueType": true,
+            "defaultValue": "",
+            "help": "Use a GTM variable containing the departure/check-out date (ISO yyyy-mm-dd). When set, the conversion is held until after this date, e.g. for bookings with free cancellation."
+          }
+        ]
       }
     ],
     "enablingConditions": [
@@ -298,6 +321,10 @@ const buildPurchasePayload = () => {
 
   if (data.products) {
     payload.products = data.products;
+  }
+
+  if (data.departureDate) {
+    payload.departureDate = data.departureDate;
   }
 
   return payload;
